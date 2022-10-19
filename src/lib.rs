@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
+use apricity::Coordinate;
+
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct City {
     pub datasetid: String,
     pub recordid: String,
     pub fields: CityData,
     pub record_timestamp: String,
+    pub geometry: Geometry,
 }
 
 impl City {
@@ -34,6 +39,35 @@ pub struct CityData {
     pub timezone: String,
     pub modification_date: String,
 }
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct FeatureCollection {
+    pub features: Vec<Feature>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct Feature {
+    pub geometry: Geometry,
+    pub properties: HashMap<String, String>,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+#[serde(tag = "type")]
+pub enum Geometry {
+    Point(GeoPoint),
+    MultiPolygon(GeoMultiPolygon),
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct GeoPoint {
+    pub coordinates: Coordinate,
+}
+
+#[derive(Clone, Debug, serde::Deserialize)]
+pub struct GeoMultiPolygon {
+    pub coordinates: Vec<Vec<Vec<Coordinate>>>,
+}
+
 
 pub fn load_cities() -> Result<Vec<City>, Box<dyn std::error::Error>> {
     let data = std::fs::read_to_string("cities100k.json")?;
