@@ -106,3 +106,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
     }
     Ok(())
 }
+
+// 1. Move the read_to_string and serde_json::from_str calls into a separate
+//    function.
+// 2. Write a function which prints the largest city for a given a the
+//    list of cities and a given country.
+// 3. Write a function that takes a "filter" parameter, which is an enum
+//    of multiple variants: CountryCode, Admin1Code or TimeZone. Print
+
