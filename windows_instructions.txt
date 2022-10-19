@@ -1,0 +1,8 @@
+1. Download https://github.com/libsdl-org/SDL/releases/download/release-2.24.1/SDL2-devel-2.24.1-VC.zip
+2. Unpack it
+3. Copy all the files in your library folder to C:\Users\{Your Username}\.rustup\toolchains\{current toolchain}\lib\rustlib\{current toolchain}\lib
+4. In the powershell, run:
+
+    $Env:lib = "C:\Users\{Your Username}\.rustup\toolchains\{current toolchain}\lib\rustlib\{current toolchain}\lib"
+
+5. Run cargo build
