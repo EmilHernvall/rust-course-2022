@@ -7,6 +7,15 @@ pub struct City {
     pub record_timestamp: String,
 }
 
+impl City {
+    pub fn country_name_eng(&self) -> &str {
+        match &self.fields.cou_name_en {
+            Some(x) => x,
+            None => &self.fields.country_code,
+        }
+    }
+}
+
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct CityData {
     pub coordinates: [f64; 2],
@@ -25,4 +34,10 @@ pub struct CityData {
     pub country_code: String,
     pub timezone: String,
     pub modification_date: String,
+}
+
+pub fn load_cities() -> Result<Vec<City>, Box<dyn std::error::Error>> {
+    let data = std::fs::read_to_string("cities100k.json")?;
+    let cities: Vec<City> = serde_json::from_str(&data)?;
+    Ok(cities)
 }
