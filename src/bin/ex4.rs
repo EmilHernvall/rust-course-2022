@@ -3,6 +3,10 @@ use std::collections::HashMap;
 
 use rustdemo::{load_cities, City, CityData};
 
+fn get_population(city: &&City) -> i64 {
+    -city.fields.population
+}
+
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cities = load_cities()?;
 
@@ -23,7 +27,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     for cities in cities_by_state.values_mut() {
-        cities.sort_by_key(|city| -city.fields.population);
+        // cities.sort_by_key(|city| -city.fields.population);
+        cities.sort_by_key(get_population);
     }
 
     for (state, cities) in cities_by_state {

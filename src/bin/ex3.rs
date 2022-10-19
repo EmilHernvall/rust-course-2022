@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use rustdemo::{City, CityData, load_cities};
+use rustdemo::{load_cities, City, CityData};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cities = load_cities()?;
@@ -15,10 +15,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // let mut country_cities = countries.get_mut(name).unwrap();
         // country_cities.push(city);
-    
-        countries.entry(name.to_string())
-            .or_default()
-            .push(city);
+
+        countries.entry(name.to_string()).or_default().push(city);
     }
 
     for city_list in countries.values_mut() {

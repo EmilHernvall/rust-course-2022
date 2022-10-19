@@ -36,7 +36,7 @@ pub fn filter_cities(cities: &Vec<City>, filter: Filter) {
                 if &city.fields.country_code != v {
                     continue;
                 }
-            },
+            }
             Filter::Admin1Code(v) => {
                 let code = match &city.fields.admin1_code {
                     Some(x) => x,
@@ -46,7 +46,7 @@ pub fn filter_cities(cities: &Vec<City>, filter: Filter) {
                 if code != v {
                     continue;
                 }
-            },
+            }
             Filter::TimeZone(v) => {
                 if &city.fields.timezone != v {
                     continue;

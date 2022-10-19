@@ -68,18 +68,17 @@ pub struct CityData {
 //    Ok(T),
 //    Err(E),
 // }
-fn main() -> Result<(), Box<dyn std::error::Error>>
-{
-//    let data = match std::fs::read_to_string("cities100k.json") {
-//        Ok(x) => x,
-//        Err(e) => {
-//            eprintln!("{:?}", e);
-//            return Err(e);
-//        },
-//    };
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    //    let data = match std::fs::read_to_string("cities100k.json") {
+    //        Ok(x) => x,
+    //        Err(e) => {
+    //            eprintln!("{:?}", e);
+    //            return Err(e);
+    //        },
+    //    };
 
     let data = std::fs::read_to_string("cities100k.json")?;
-    
+
     let cities: Vec<City> = serde_json::from_str(&data)?;
 
     for city in &cities {
@@ -91,7 +90,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
             Some(x) => x,
             None => {
                 continue;
-            },
+            }
         };
 
         if state != "CA" {
@@ -101,8 +100,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
         if city.fields.population < 1_000_000 {
             continue;
         }
-        
-        println!("{:#?}", city);    
+
+        println!("{:#?}", city);
     }
     Ok(())
 }
@@ -113,4 +112,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>>
 //    list of cities and a given country.
 // 3. Write a function that takes a "filter" parameter, which is an enum
 //    of multiple variants: CountryCode, Admin1Code or TimeZone. Print
-
