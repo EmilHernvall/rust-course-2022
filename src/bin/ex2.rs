@@ -66,5 +66,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     largest_city(&cities, &foo);
     largest_city(&cities, "UZ");
 
+    let filter = Filter::CountryCode("US".to_string());
+
+    filter_cities(&cities, filter);
+
     Ok(())
 }
