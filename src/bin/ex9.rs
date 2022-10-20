@@ -92,20 +92,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             }
 
-            // If current_city is None, pick a new city and start a new round
-            if current_city.is_none() {
-                let new_city = cities.choose(&mut rng).unwrap();
-                for client in clients.values_mut() {
-                    client.write(&bincode::serialize(&ServerMessage::NewRound {
-                        city_name: new_city.fields.name.clone(),
-                    }).unwrap()).unwrap();
-                }
-
-                println!("New city: {}", &new_city.fields.name);
-
-                current_city = Some(new_city);
-            }
-
             // Check if everyone has submitted their guess, figure out who won,
             // and print results to console
 
@@ -140,7 +126,17 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }).unwrap()).unwrap();
                 }
 
-                current_city = None;
+                // Pick a new city
+                let new_city = cities.choose(&mut rng).unwrap();
+                for client in clients.values_mut() {
+                    client.write(&bincode::serialize(&ServerMessage::NewRound {
+                        city_name: new_city.fields.name.clone(),
+                    }).unwrap()).unwrap();
+                }
+
+                println!("New city: {}", &new_city.fields.name);
+
+                current_city = Some(new_city);
             }
         }
     });

@@ -153,7 +153,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     window.run(|window, events| {
         while let Ok(msg) = receiver.try_recv() {
-            match msg {
+            match dbg!(msg) {
                 ServerMessage::Welcome { server_name } => {},
                 ServerMessage::NewRound { city_name } => {
                     let state = window.state_mut();
@@ -181,16 +181,40 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let state = window.state();
         let text = match state.display {
             DisplayState::WaitForServer { guess } => {
-                // TODO: draw a circle for guess location
+                let p = guess.screen(window.width() as f64, window.height() as f64);
+                window.stroke_circle(
+                    p.x,
+                    p.y,
+                    5.0,
+                    1.0,
+                    [ 0xFF, 0, 0, 0xFF ],
+                )?;
             
                 "Waiting for other players".to_string()
             },
             DisplayState::WaitForContinue { guess, actual } => {
-                // TODO: draw a circle for guess location
-                // TODO: draw a circle for actual location
+                let guess_point = guess.screen(window.width() as f64, window.height() as f64);
+                let actual_point = actual.screen(window.width() as f64, window.height() as f64);
 
-                // TODO: "You were within {} km"
-                todo!()
+                window.stroke_circle(
+                    guess_point.x,
+                    guess_point.y,
+                    5.0,
+                    1.0,
+                    [ 0xFF, 0, 0, 0xFF ],
+                )?;
+
+                window.stroke_circle(
+                    actual_point.x,
+                    actual_point.y,
+                    5.0,
+                    1.0,
+                    [ 0, 0, 0xFF, 0xFF ],
+                )?;
+
+                let distance_km = guess.great_circle_distance(actual)/1000.0;
+
+                format!("You were {}km off", distance_km)
             },
             DisplayState::WaitForGuess => {
                 format!("Click on {}", state.current_city)
@@ -214,7 +238,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 text_image.height(),
             )),
             true,
-        );
+        )?;
 
         // Handle clicks
         let state = window.state_mut();
