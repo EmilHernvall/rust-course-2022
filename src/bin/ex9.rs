@@ -116,7 +116,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let mut scores: Vec<_> = clients.values()
                 .filter_map(|client| {
-                    let name = client.name.clone().unwrap();
+                    let name = client.name.clone()?;
                     let guess = client.guess?;
                     let distance = city_coords.great_circle_distance(guess);
 
