@@ -166,6 +166,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "ttf-noto-sans",
 ]
 
 [[package]]
@@ -248,6 +249,12 @@ dependencies = [
  "quote",
  "unicode-ident",
 ]
+
+[[package]]
+name = "ttf-noto-sans"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af8d9b91fd57773cd2a725fca72fb74535118c4bba68153ecee238d1c6fad6b6"
 
 [[package]]
 name = "ttf-parser"

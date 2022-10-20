@@ -5,7 +5,7 @@ use std::sync::{Arc, RwLock};
 
 use rand::prelude::*;
 
-use rustdemo::{protocol::*, load_cities};
+use rustdemo::{protocol::*, load_cities, Geometry};
 
 // pub trait CanBeDoubled {
 //     fn double(self) -> Self;
@@ -19,6 +19,7 @@ use rustdemo::{protocol::*, load_cities};
 
 pub struct Client {
     socket: TcpStream,
+    name: Option<String>,
     guess: Option<apricity::Coordinate>,
 }
 
@@ -26,6 +27,7 @@ impl Client {
     pub fn new(socket: TcpStream) -> Client {
         Client {
             socket,
+            name: None,
             guess: None,
         }
     }
@@ -57,7 +59,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::thread::spawn(move || {
         let mut clients = HashMap::new();
         let mut rng = thread_rng();
-        let mut current_city = cities.choose(&mut rng).unwrap();
+        let mut current_city = cities.choose(&mut rng);
         for event in rx {
             match event {
                 SocketEvent::Connect(socket_id, socket) => {
@@ -65,6 +67,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
                 SocketEvent::Message(socket_id, ClientMessage::Hello { name }) => {
                     let mut client = clients.get_mut(&socket_id).unwrap();
+                    client.name = Some(name);
 
                     let welcome = ServerMessage::Welcome {
                         server_name: server_name.to_string(),
@@ -73,23 +76,72 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let welcome = bincode::serialize(&welcome).unwrap();
                     client.write(&welcome).unwrap();
 
-                    // TODO: Send ServerMessage::NewRound with current_city
+                    // Send ServerMessage::NewRound with current_city
+                    if let Some(city) = &current_city {
+                        client.write(&bincode::serialize(&ServerMessage::NewRound {
+                            city_name: city.fields.name.clone(),
+                        }).unwrap()).unwrap();
+                    }
                 },
                 SocketEvent::Message(socket_id, ClientMessage::Guess(coordinate)) => {
-                    // TODO: Update Client with incoming guess
+                    let client = clients.get_mut(&socket_id).unwrap();
+                    client.guess = Some(coordinate);
                 },
                 SocketEvent::Disconnect(socket_id) => {
                     clients.remove(&socket_id);
                 },
             }
 
-            // TODO: If current_city is None, pick a new city and start a new round
+            // If current_city is None, pick a new city and start a new round
+            if current_city.is_none() {
+                let new_city = cities.choose(&mut rng).unwrap();
+                for client in clients.values_mut() {
+                    client.write(&bincode::serialize(&ServerMessage::NewRound {
+                        city_name: new_city.fields.name.clone(),
+                    }).unwrap()).unwrap();
+                }
 
-            // TODO: Check if everyone has submitted their guess, figure out who won,
+                println!("New city: {}", &new_city.fields.name);
+
+                current_city = Some(new_city);
+            }
+
+            // Check if everyone has submitted their guess, figure out who won,
             // and print results to console
 
-            // TODO: When the round finishes, send the correct answer to client in
+            let city_coords = match &current_city.unwrap().geometry {
+                Geometry::Point(p) => p.coordinates,
+                _ => unreachable!(),
+            };
+
+            let mut scores: Vec<_> = clients.values()
+                .filter_map(|client| {
+                    let name = client.name.clone().unwrap();
+                    let guess = client.guess?;
+                    let distance = city_coords.great_circle_distance(guess);
+
+                    Some((name, distance))
+                })
+                .collect();
+
+            // When the round finishes, send the correct answer to client in
             // ServerMessage::RoundResults
+            if scores.len() == clients.len() && clients.len() > 0 {
+                scores.sort_by_key(|x| x.1 as i64);
+
+                for (name, score) in scores {
+                    println!("{} - {}", name, score);
+                }
+
+                for client in clients.values_mut() {
+                    client.guess = None;
+                    client.write(&bincode::serialize(&ServerMessage::RoundResults {
+                        actual_location: city_coords,
+                    }).unwrap()).unwrap();
+                }
+
+                current_city = None;
+            }
         }
     });
 
