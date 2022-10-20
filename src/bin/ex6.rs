@@ -16,8 +16,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         };
 
-        let mut sockets_lock = sockets.write().unwrap();
-        sockets_lock.push(socket.try_clone()?);
+        {
+            let mut sockets_lock = sockets.write().unwrap();
+            sockets_lock.push(socket.try_clone()?);
+        }
 
         let sockets2 = sockets.clone();
         std::thread::spawn(move || {

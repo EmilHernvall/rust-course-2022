@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ptr};
 
 use apricity::{Coordinate, Point, gui::SimpleWindow};
 
@@ -49,6 +49,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         window.draw_image(&image, None, false)?;
 
         for city in &largest_cities {
+
             let p = match &city.geometry {
                 Geometry::Point(p) => p,
                 _ => continue,
