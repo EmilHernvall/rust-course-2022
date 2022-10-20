@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use apricity::Coordinate;
 
+pub mod protocol;
+
 #[derive(Clone, Debug, serde::Deserialize)]
 pub struct City {
     pub datasetid: String,
