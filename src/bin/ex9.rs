@@ -3,7 +3,43 @@ use std::net::TcpStream;
 use std::io::{Write, Read};
 use std::sync::{Arc, RwLock};
 
-use rustdemo::protocol::*;
+use rand::prelude::*;
+
+use rustdemo::{protocol::*, load_cities};
+
+// pub trait CanBeDoubled {
+//     fn double(self) -> Self;
+// }
+// 
+// impl CanBeDoubled for u32 {
+//     fn double(self) -> Self {
+//         2*self
+//     }
+// }
+
+pub struct Client {
+    socket: TcpStream,
+    guess: Option<apricity::Coordinate>,
+}
+
+impl Client {
+    pub fn new(socket: TcpStream) -> Client {
+        Client {
+            socket,
+            guess: None,
+        }
+    }
+}
+
+impl Write for Client {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.socket.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.socket.flush()
+    }
+}
 
 // nc localhost 12345
 pub enum SocketEvent {
@@ -15,16 +51,20 @@ pub enum SocketEvent {
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let server_name = "Emil's excellent server";
 
+    let cities = load_cities()?;
+
     let (tx, rx) = std::sync::mpsc::channel::<SocketEvent>();
     std::thread::spawn(move || {
-        let mut sockets = HashMap::new();
+        let mut clients = HashMap::new();
+        let mut rng = thread_rng();
+        let mut current_city = cities.choose(&mut rng).unwrap();
         for event in rx {
             match event {
                 SocketEvent::Connect(socket_id, socket) => {
-                    sockets.insert(socket_id, socket);
+                    clients.insert(socket_id, Client::new(socket));
                 },
                 SocketEvent::Message(socket_id, ClientMessage::Hello { name }) => {
-                    let mut client = sockets.get_mut(&socket_id).unwrap();
+                    let mut client = clients.get_mut(&socket_id).unwrap();
 
                     let welcome = ServerMessage::Welcome {
                         server_name: server_name.to_string(),
@@ -32,13 +72,24 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     let welcome = bincode::serialize(&welcome).unwrap();
                     client.write(&welcome).unwrap();
+
+                    // TODO: Send ServerMessage::NewRound with current_city
                 },
                 SocketEvent::Message(socket_id, ClientMessage::Guess(coordinate)) => {
+                    // TODO: Update Client with incoming guess
                 },
                 SocketEvent::Disconnect(socket_id) => {
-                    sockets.remove(&socket_id);
+                    clients.remove(&socket_id);
                 },
             }
+
+            // TODO: If current_city is None, pick a new city and start a new round
+
+            // TODO: Check if everyone has submitted their guess, figure out who won,
+            // and print results to console
+
+            // TODO: When the round finishes, send the correct answer to client in
+            // ServerMessage::RoundResults
         }
     });
 
@@ -71,3 +122,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+// Update the client to send ClientMessage::Hello
+// and then read the ServerMessage response and print it
